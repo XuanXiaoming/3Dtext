@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <title>《祝福祖国》—— 合肥金融服务中心 宣晓明</title>
+    <style>
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            background-color: #000000;
+            margin: 0;
+            font-family: Helvetica, sans-serif;;
+            overflow: hidden;
+        }
+
+        #info {
+            position: absolute;
+            width: 100%;
+            color: #ffffff;
+            padding: 5px;
+            font-family: Monospace;
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+            z-index: 1;
+        }
+
+        #menu {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .element {
+            width: 120px;
+            height: 160px;
+            box-shadow: 0px 0px 12px rgba(251, 255, 1, 0.5);
+            border: 1px solid rgba(251,255,1,0.25);
+            text-align: center;
+            cursor: default;
+        }
+
+        .element:hover {
+            box-shadow: 0px 0px 12px rgba(251,255,1,0.75);
+            border: 1px solid rgba(251,255,1,0.75);
+        }
+
+        .element .symbol {
+            position: absolute;
+            top: 40px;
+            left: 0px;
+            right: 0px;
+            font-size: 70px;
+            font-weight: bold;
+            color: rgba(251,255,1,0.75);
+            text-shadow: 0 0 10px rgba(251,255,1,0.95);
+        }
+
+        button {
+            color: rgba(255,255,255,0.6);
+            background: transparent;
+            outline: 0px solid rgba(127,255,255,0.75);
+            border: 0px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<script src="js/three.min.js"></script>
+<script src="js/tween.min.js"></script>
+<script src="js/TrackballControls.js"></script>
+<script src="js/CSS3DRenderer.js"></script>
+
+<div id="container"></div>
+<div id="menu">
+    <button id="helix" disabled>Design by Xuan</button>
+</div>
+
+<script>
+
+    var table = [
+       "我", "爱", "我", "的", "祖" , "国", "，", 
+       "我", "亲", "爱", "的", "祖" , "国", "，", 
+       "亲", "你", "用", "我", "最" , "暖", "的", "心", "窝", "；", 
+       "我", "爱", "我", "的", "祖" , "国", "，",  
+       "我", "亲", "我", "的", "祖" , "国", "，", 
+       "爱", "你", "是", "我", "一" , "生", "的", "寄", "托", "；", 
+       "你", "如", "编", "制", "的", "阡", "陌", "，", 
+       "你", "如", "瑶", "池", "的", "湖", "泊", "，", 
+       "如", "情", "如", "梦", "的", "是", "你", "，", 
+       "是", "你", "百", "姓", "的", "生", "活", "，", 
+       "望", "创", "业", "的", "气", "魄", "，", 
+       "展", "理", "想", "的", "收", "获", "，", 
+       "男", "女", "老", "少", "的", "心", "中", "，", 
+       "飞", "出", "你", "爱", "的", "恋", "歌 ", "。", 
+    ];
+
+    var camera, scene, renderer;
+    var controls;
+    var objects = [], helix = [];
+
+    init();
+    animate();
+
+    function init() {
+
+        camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+        camera.position.z = 3000;
+        scene = new THREE.Scene();
+
+        // 组装字符元素
+        for ( var i = 0; i < table.length; i ++ ) {
+
+            // 字框
+            var element = document.createElement( 'div' );
+            element.className = 'element';
+            element.style.backgroundColor = 'rgba(238,28,37,' + ( Math.random() * 0.5 + 0.25 ) + ')';
+
+            // 文字
+            var symbol = document.createElement( 'div' );
+            symbol.className = 'symbol';
+            symbol.textContent = table[ i ];
+            element.appendChild( symbol );
+
+            var object = new THREE.CSS3DObject( element );
+            object.position.x = Math.random() * 4000 - 2000;
+            object.position.y = Math.random() * 4000 - 2000;
+            object.position.z = Math.random() * 4000 - 2000;
+            scene.add( object );
+
+            objects.push( object );
+        }
+
+        var vector = new THREE.Vector3();
+
+        for ( var i = 0, l = objects.length; i < l; i ++ ) {
+
+            var phi = i * 0.175 + Math.PI;
+            var object = new THREE.Object3D();
+
+            object.position.x = 900 * Math.sin( phi );
+            object.position.y = - ( i * 8 ) + 450;
+            object.position.z = 900 * Math.cos( phi );
+
+            vector.x = object.position.x * 2;
+            vector.y = object.position.y;
+            vector.z = object.position.z * 2;
+
+            object.lookAt( vector );
+            helix.push( object );
+        }
+
+        renderer = new THREE.CSS3DRenderer();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.domElement.style.position = 'absolute';
+        document.getElementById( 'container' ).appendChild( renderer.domElement );
+
+        controls = new THREE.TrackballControls( camera, renderer.domElement );
+        controls.rotateSpeed = 0.5;
+        controls.minDistance = 500;
+        controls.maxDistance = 6000;
+        controls.addEventListener( 'change', render );
+
+        transform( helix, 5000 );
+        window.addEventListener( 'resize', onWindowResize, false );
+    }
+
+    
+    function transform( helix, duration ) {
+
+        TWEEN.removeAll();
+
+        for ( var i = 0; i < objects.length; i ++ ) {
+
+            var object = objects[ i ];
+            var target = helix[ i ];
+
+            new TWEEN.Tween( object.position )
+                    .to( { x: target.position.x, y: target.position.y, z: target.position.z }, Math.random() * duration + duration )
+                    .easing( TWEEN.Easing.Exponential.InOut )
+                    .start();
+
+            new TWEEN.Tween( object.rotation )
+                    .to( { x: target.rotation.x, y: target.rotation.y, z: target.rotation.z }, Math.random() * duration + duration )
+                    .easing( TWEEN.Easing.Exponential.InOut )
+                    .start();
+        }
+
+        new TWEEN.Tween( this )
+                .to( {}, duration * 2 )
+                .onUpdate( render )
+                .start();
+    }
+
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        render();
+    }
+
+    function animate() {
+        requestAnimationFrame( animate );
+        TWEEN.update();
+        controls.update();
+    }
+
+    function render() {
+        renderer.render( scene, camera );
+    }
+
+</script>
+</body>
+</html>
